@@ -1,4 +1,4 @@
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
   name: flux-system
@@ -6,4 +6,8 @@ metadata:
 spec:
   interval: 1m
   url: https://github.com/delwarhossainhimel/fluxcd-with-k3s
-  branch: main
+  ref:
+    branch: main
+  timeout: 60s
+  secretRef:
+    name: flux-system
