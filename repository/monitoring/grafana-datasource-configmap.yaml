@@ -1,10 +1,16 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: wordpress-logs-dashboard
+  name: grafana-datasource
   namespace: monitoring
   labels:
-    grafana_dashboard: "1"
+    grafana_datasource: "1"
 data:
-  wordpress-logs.json: |
-    { ... your exported dashboard JSON ... }
+  datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        isDefault: true
