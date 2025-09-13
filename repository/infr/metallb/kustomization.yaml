@@ -5,8 +5,8 @@ metadata:
   namespace: metallb-system
 spec:
   interval: 15m
-  path: "./repository"
+  path: "./repository/metallb"
   prune: true
   sourceRef:
     kind: GitRepository
-    name: metalLB
+    name: metallb
