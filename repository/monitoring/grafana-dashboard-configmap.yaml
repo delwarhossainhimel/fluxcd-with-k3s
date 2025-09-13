@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: wordpress-logs-dashboard
-  namespace: monitoring
+  namespace: flux-system
   labels:
     grafana_dashboard: "1"
 data:
