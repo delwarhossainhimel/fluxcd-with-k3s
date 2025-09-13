@@ -4,3 +4,4 @@ resources:
   - helmrepository.yaml
   - helmrelease.yaml
   - lua-404-configmap.yaml
+  - ingress-dummy.yaml
