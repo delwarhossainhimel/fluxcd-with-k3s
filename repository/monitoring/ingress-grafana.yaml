@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-monitor.local
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # Optional useful annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /  # Ensures proper path rewriting
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Set to true if using HTTPS
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"  # Set to true if forcing HTTPS
+spec:
+  ingressClassName: nginx  # You can move this from annotation to here in newer versions
+  rules:
+  - host: app-monitor.local
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: grafana
+              port:
+                number: 80
