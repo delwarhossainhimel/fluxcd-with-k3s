@@ -30,7 +30,7 @@ spec:
       positions:
         filename: /run/promtail/positions.yaml
       clients:
-        - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+        - url: http://loki-stack.monitoring.svc.cluster.local:3100/loki/api/v1/push
       scrape_configs:
         - job_name: kubernetes-pods
           kubernetes_sd_configs:
