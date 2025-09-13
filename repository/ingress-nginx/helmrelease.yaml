@@ -1,3 +1,39 @@
+# apiVersion: helm.toolkit.fluxcd.io/v2
+# kind: HelmRelease
+# metadata:
+#   name: ingress-nginx
+#   namespace: ingress-nginx
+# spec:
+#   releaseName: ingress-nginx
+#   interval: 5m
+#   chart:
+#     spec:
+#       chart: ingress-nginx
+#       version: 4.11.7   # <-- updated version
+#       sourceRef:
+#         kind: HelmRepository
+#         name: ingress-nginx
+#         namespace: flux-system
+#       interval: 1m
+#   install:
+#     createNamespace: true
+#   values:
+#     controller:
+#       service:
+#         type: LoadBalancer
+#         loadBalancerIP: ""  # optional: assign a static IP from MetalLB pool
+#       config:
+#         enable-lua: "true"
+#       extraVolumes:
+#         - name: lua-scripts
+#           configMap:
+#             name: ingress-nginx-lua-404
+#       extraVolumeMounts:
+#         - name: lua-scripts
+#           mountPath: /etc/nginx/lua
+#           readOnly: true
+#       configSnippet: |
+#         content_by_lua_file /etc/nginx/lua/404-redirect.lua;
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -9,7 +45,7 @@ spec:
   chart:
     spec:
       chart: ingress-nginx
-      version: 4.11.7   # <-- updated version
+      version: 4.11.7
       sourceRef:
         kind: HelmRepository
         name: ingress-nginx
@@ -21,9 +57,19 @@ spec:
     controller:
       service:
         type: LoadBalancer
-        loadBalancerIP: ""  # optional: assign a static IP from MetalLB pool
       config:
         enable-lua: "true"
+        # server-snippet will be injected inside each server {} block including the default server
+        server-snippet: |
+          # intercept proxied errors so error_page handles upstream 404s
+          proxy_intercept_errors on;
+          # route 404s to named location which runs the Lua file
+          error_page 404 = @handle404;
+          location @handle404 {
+            internal;
+            # call Lua file (must be mounted at this path)
+            content_by_lua_file /etc/nginx/lua/404-redirect.lua;
+          }
       extraVolumes:
         - name: lua-scripts
           configMap:
@@ -32,5 +78,3 @@ spec:
         - name: lua-scripts
           mountPath: /etc/nginx/lua
           readOnly: true
-      configSnippet: |
-        content_by_lua_file /etc/nginx/lua/404-redirect.lua;
