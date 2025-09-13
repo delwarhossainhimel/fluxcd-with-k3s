@@ -43,8 +43,12 @@ spec:
                 regex: __meta_kubernetes_pod_label_(.+)
       scrape_configs:
         - job_name: kubernetes-pods
-          kubernetes_sd_configs:
-            - role: pod
+          static_configs:
+            - targets:
+                - localhost
+              labels:
+                job: kubernetes-pods
+                __path__: /var/log/pods/*/*/*.log
     extraVolumes:
       - name: varlog
         hostPath:
