@@ -1,3 +1,76 @@
+# apiVersion: helm.toolkit.fluxcd.io/v2
+# kind: HelmRelease
+# metadata:
+#   name: loki
+#   namespace: monitoring
+# spec:
+#   chart:
+#     spec:
+#       chart: loki-stack
+#       version: "*"
+#       sourceRef:
+#         kind: HelmRepository
+#         name: grafana-loki
+#         namespace: flux-system
+#   interval: 5m
+#   install:
+#     createNamespace: true
+#     timeout: 15m
+#   values:
+#     loki:
+#       enabled: true
+#       # Set the service name to "loki" instead of default
+#       service:
+#         name: loki  # ← This creates service named "loki"
+#         port: 3100
+#         targetPort: 3100
+      
+#       config:
+#         auth_enabled: false
+#         common:
+#           ring:
+#             kvstore:
+#               store: inmemory
+#           replication_factor: 1
+      
+#       # Health checks
+#       livenessProbe:
+#         httpGet:
+#           path: /ready
+#           port: 3100  # Use port number instead of named port
+#         initialDelaySeconds: 120
+#         periodSeconds: 10
+#         timeoutSeconds: 5
+#         failureThreshold: 3
+      
+#       readinessProbe:
+#         httpGet:
+#           path: /ready
+#           port: 3100  # Use port number instead of named port
+#         initialDelaySeconds: 90
+#         periodSeconds: 5
+#         timeoutSeconds: 3
+#         failureThreshold: 3
+      
+#       resources:
+#         limits:
+#           memory: 512Mi
+#           cpu: 500m
+#         requests:
+#           memory: 256Mi
+#           cpu: 100m
+      
+#       persistence:
+#         enabled: true
+#         size: 5Gi
+#         storageClassName: local-path
+    
+#     promtail:
+#       enabled: false
+#     grafana:
+#       enabled: false
+#     prometheus:
+#       enabled: false
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -6,68 +79,57 @@ metadata:
 spec:
   chart:
     spec:
-      chart: loki-stack
-      version: "*"
+      chart: loki  # Note: Bitnami chart is actually 'grafana-loki', but 'loki' resolves correctly
+      version: "11.2.*"
       sourceRef:
         kind: HelmRepository
-        name: grafana-loki
+        name: bitnami
         namespace: flux-system
-  interval: 5m
-  install:
-    createNamespace: true
-    timeout: 15m
   values:
-    loki:
+    auth_enabled: false  # Your existing setting (disables multi-tenancy)
+
+    # Your persistence setup (applies to ingester/boltdb-shipper components)
+    persistence:
       enabled: true
-      # Set the service name to "loki" instead of default
-      service:
-        name: loki  # ← This creates service named "loki"
-        port: 3100
-        targetPort: 3100
-      
-      config:
-        auth_enabled: false
-        common:
-          ring:
-            kvstore:
-              store: inmemory
-          replication_factor: 1
-      
-      # Health checks
-      livenessProbe:
-        httpGet:
-          path: /ready
-          port: 3100  # Use port number instead of named port
-        initialDelaySeconds: 120
-        periodSeconds: 10
-        timeoutSeconds: 5
-        failureThreshold: 3
-      
-      readinessProbe:
-        httpGet:
-          path: /ready
-          port: 3100  # Use port number instead of named port
-        initialDelaySeconds: 90
-        periodSeconds: 5
-        timeoutSeconds: 3
-        failureThreshold: 3
-      
-      resources:
-        limits:
-          memory: 512Mi
-          cpu: 500m
-        requests:
-          memory: 256Mi
-          cpu: 100m
-      
-      persistence:
-        enabled: true
-        size: 5Gi
-        storageClassName: local-path
-    
-    promtail:
-      enabled: false
-    grafana:
-      enabled: false
-    prometheus:
-      enabled: false
+      size: 5Gi
+      storageClassName: local-path
+
+    # Critical: Override Loki's common config for filesystem storage
+    loki:
+      commonConfig:
+        path_prefix: /data/loki  # Base path on the PVC for all storage
+        storage:
+          filesystem:  # Use local filesystem (matches your persistence)
+            chunks_directory: /data/loki/chunks  # Path for log chunks (fixes the nil pointer)
+            rules_directory: /data/loki/rules     # Path for ruler rules
+        replication_factor: 1  # Single replica for simple setup
+
+      # Basic schema config (required for boltdb-shipper; adjust 'from' date if needed)
+      schemaConfig:
+        configs:
+          - from: 2024-05-01  # Use a recent date; older logs need back-compat
+            store: boltdb-shipper
+            object_store: filesystem
+            schema: v13  # Or v12 for compatibility
+            index:
+              prefix: index_
+              period: 24h
+
+      # Optional: Disable ruler/compactor if not needed (reduces complexity)
+      ruler:
+        enabled: false
+      compactor:
+        enabled: false
+
+      # Ensure ingester uses persistence (default, but explicit for clarity)
+      ingester:
+        persistence:
+          enabled: true  # Ties to your global persistence
+
+    # Optional: Enable embedded MinIO for full object storage (dev/test only; replaces filesystem)
+    # minio:
+    #   enabled: true
+    #   auth:
+    #     rootUser: minioadmin
+    #   defaultBuckets: "loki-chunks:loki-rules:loki-admin"  # Auto-creates buckets
+    # Then update commonConfig.storage to: type: s3, s3: { endpoint: minio:9000, insecure: true, bucketNames: { chunks: loki-chunks, ruler: loki-rules, admin: loki-admin } }
