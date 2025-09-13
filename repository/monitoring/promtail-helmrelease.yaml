@@ -16,6 +16,8 @@ spec:
   install:
     createNamespace: true
   values:
+    daemonset:
+      enabled: true       # Run Promtail as DaemonSet (one per node)
     serviceAccount:
       create: true
       name: promtail
