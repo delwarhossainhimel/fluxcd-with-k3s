@@ -30,21 +30,27 @@ spec:
             kubernetes_sd_configs:
               - role: pod
             relabel_configs:
-              # Keep only WordPress and ingress-nginx pods
               - source_labels: [__meta_kubernetes_pod_label_app]
                 regex: wordpress|ingress-nginx
                 action: keep
-              # Add namespace, pod, and container labels
               - source_labels: [__meta_kubernetes_namespace]
                 target_label: namespace
               - source_labels: [__meta_kubernetes_pod_name]
                 target_label: pod
               - source_labels: [__meta_kubernetes_pod_container_name]
                 target_label: container
-              # Map all pod labels
               - action: labelmap
                 regex: __meta_kubernetes_pod_label_(.+)
       scrape_configs:
         - job_name: kubernetes-pods
           kubernetes_sd_configs:
             - role: pod
+    extraVolumes:
+      - name: varlog
+        hostPath:
+          path: /var/lib/rancher/k3s/agent/containerd/io.containerd.runtime.v2.task/k8s.io
+          type: Directory
+    extraVolumeMounts:
+      - name: varlog
+        mountPath: /var/log/pods
+        readOnly: true
