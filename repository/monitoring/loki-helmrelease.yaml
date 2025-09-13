@@ -7,7 +7,7 @@ spec:
   chart:
     spec:
       chart: loki-stack
-      version: "*"
+      version: "2.10.*"
       sourceRef:
         kind: HelmRepository
         name: grafana-loki
