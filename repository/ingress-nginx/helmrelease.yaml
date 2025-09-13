@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: ingress-nginx
-      version: 4.11.7
+      version: 4.11.7   # <-- updated version
       sourceRef:
         kind: HelmRepository
         name: ingress-nginx
@@ -21,3 +21,4 @@ spec:
     controller:
       service:
         type: LoadBalancer
+        loadBalancerIP: ""  # optional: assign a static IP from MetalLB pool
