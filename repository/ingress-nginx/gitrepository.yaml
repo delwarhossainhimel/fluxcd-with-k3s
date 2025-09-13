@@ -1,13 +1,16 @@
-apiVersion: source.toolkit.fluxcd.io/v1
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-nginx
+  
+---
+piVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: flux-system
-  namespace: flux-system
+  name: ingress-nginx
+  namespace: ingress-nginx
 spec:
-  interval: 1m
-  url: https://github.com/delwarhossainhimel/fluxcd-with-k3s
+  interval: 1m0s
   ref:
     branch: main
-  timeout: 60s
-  secretRef:
-    name: flux-system
+  url: https://github.com/delwarhossainhimel/fluxcd-with-k3s
