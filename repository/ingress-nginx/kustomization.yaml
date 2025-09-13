@@ -1,14 +1,5 @@
-apiVersion: kustomize.toolkit.fluxcd.io/v1
+apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-metadata:
-  name: ingress-nginx
-  namespace: flux-system   # <-- Flux CRD lives in flux-system
-spec:
-  interval: 15m
-  path: ./repository/ingress-nginx
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: ingress-nginx
-    namespace: flux-system
-  targetNamespace: ingress-nginx   # <-- where resources (HelmRelease, HelmRepository) will be deployed
+resources:
+  - nginx-helmrepository.yaml
+  - nginx-helmrelease.yaml
