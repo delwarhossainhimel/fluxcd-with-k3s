@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: promtail
-      version: 6.15.5
+      version: "6.15.*"
       sourceRef:
         kind: HelmRepository
         name: grafana-loki
@@ -16,4 +16,13 @@ spec:
   values:
     config:
       clients:
-        - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+        - url: http://loki:3100/loki/api/v1/push
+      snippets:
+        extraScrapeConfigs: |
+          - job_name: kubernetes-pods
+            kubernetes_sd_configs:
+            - role: pod
+            relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_label_app]
+              action: keep
+              regex: wordpress|ingress-nginx
