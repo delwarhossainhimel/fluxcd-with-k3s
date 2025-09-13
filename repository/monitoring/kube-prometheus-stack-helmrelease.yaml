@@ -4,12 +4,11 @@ metadata:
   name: kube-prometheus-stack
   namespace: monitoring
 spec:
-  releaseName: kube-prometheus-stack
-  interval: 10m
+  interval: 5m
   chart:
     spec:
       chart: kube-prometheus-stack
-      version: 53.2.0   # example — pin to specific chart version you prefer
+      version: 65.3.0 # pick stable version
       sourceRef:
         kind: HelmRepository
         name: prometheus-community
@@ -18,13 +17,4 @@ spec:
     createNamespace: true
   values:
     grafana:
-      service:
-        type: LoadBalancer   # if you have MetalLB; otherwise use NodePort
-      sidecar:
-        dashboards:
-          enabled: true
-        datasources:
-          enabled: true
-    prometheus:
-      prometheusSpec:
-        serviceMonitorSelectorNilUsesHelmValues: false
+      enabled: false # we install Grafana separately
