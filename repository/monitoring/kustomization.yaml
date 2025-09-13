@@ -6,6 +6,7 @@ resources:
   - helmrepositories/loki-helmrepo.yaml
   - kube-prometheus-stack-helmrelease.yaml
   - loki-helmrelease.yaml
+  - promtail-rbac.yaml
   - promtail-helmrelease.yaml
   - grafana-helmrelease.yaml
   - grafana-datasource-configmap.yaml
