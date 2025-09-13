@@ -1,138 +1,73 @@
-# apiVersion: helm.toolkit.fluxcd.io/v2
-# kind: HelmRelease
-# metadata:
-#   name: loki
-#   namespace: monitoring
-# spec:
-#   chart:
-#     spec:
-#       chart: loki-stack
-#       version: "*"
-#       sourceRef:
-#         kind: HelmRepository
-#         name: grafana-loki
-#         namespace: flux-system
-#   interval: 5m
-#   install:
-#     createNamespace: true
-#     timeout: 15m
-#   values:
-#     loki:
-#       enabled: true
-#       # Set the service name to "loki" instead of default
-#       service:
-#         name: loki  # ← This creates service named "loki"
-#         port: 3100
-#         targetPort: 3100
-      
-#       config:
-#         auth_enabled: false
-#         common:
-#           ring:
-#             kvstore:
-#               store: inmemory
-#           replication_factor: 1
-      
-#       # Health checks
-#       livenessProbe:
-#         httpGet:
-#           path: /ready
-#           port: 3100  # Use port number instead of named port
-#         initialDelaySeconds: 120
-#         periodSeconds: 10
-#         timeoutSeconds: 5
-#         failureThreshold: 3
-      
-#       readinessProbe:
-#         httpGet:
-#           path: /ready
-#           port: 3100  # Use port number instead of named port
-#         initialDelaySeconds: 90
-#         periodSeconds: 5
-#         timeoutSeconds: 3
-#         failureThreshold: 3
-      
-#       resources:
-#         limits:
-#           memory: 512Mi
-#           cpu: 500m
-#         requests:
-#           memory: 256Mi
-#           cpu: 100m
-      
-#       persistence:
-#         enabled: true
-#         size: 5Gi
-#         storageClassName: local-path
-    
-#     promtail:
-#       enabled: false
-#     grafana:
-#       enabled: false
-#     prometheus:
-#       enabled: false
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
-metadata:
-  name: bitnami
-  namespace: flux-system
-spec:
-  interval: 1h
-  url: https://charts.bitnami.com/bitnami
----
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: loki
   namespace: monitoring
 spec:
-  interval: 10m  # Required: Reconciliation interval (e.g., 10m, 1h)
-
   chart:
     spec:
-      chart: loki
-      version: "11.2.*"
+      chart: loki-stack
+      version: "*"
       sourceRef:
         kind: HelmRepository
-        name: bitnami
+        name: grafana-loki
         namespace: flux-system
-
+  interval: 5m
+  install:
+    createNamespace: true
+    timeout: 15m
   values:
-    auth_enabled: false
-
-    # Persistence for ingester (filesystem storage)
-    persistence:
-      enabled: true
-      size: 5Gi
-      storageClassName: local-path
-
-    # Override for filesystem storage (fixes nil pointer on chunks)
     loki:
-      commonConfig:
-        path_prefix: /data/loki
-        storage:
-          filesystem:
-            chunks_directory: /data/loki/chunks
-            rules_directory: /data/loki/rules
-        replication_factor: 1
-
-      # Basic schema config
-      schemaConfig:
-        configs:
-          - from: 2024-05-01
-            store: boltdb-shipper
-            object_store: filesystem
-            schema: v13
-            index:
-              prefix: index_
-              period: 24h
-
-      # Disable unused components
-      ruler:
-        enabled: false
-      compactor:
-        enabled: false
-
-      ingester:
-        persistence:
-          enabled: true
+      enabled: true
+      # Set the service name to "loki" instead of default
+      service:
+        name: loki  # ← This creates service named "loki"
+        port: 3100
+        targetPort: 3100
+      
+      config:
+        auth_enabled: false
+        common:
+          ring:
+            kvstore:
+              store: inmemory
+          replication_factor: 1
+      
+      # Health checks
+      livenessProbe:
+        httpGet:
+          path: /ready
+          port: 3100  # Use port number instead of named port
+        initialDelaySeconds: 120
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 3
+      
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 3100  # Use port number instead of named port
+        initialDelaySeconds: 90
+        periodSeconds: 5
+        timeoutSeconds: 3
+        failureThreshold: 3
+      
+      resources:
+        limits:
+          memory: 512Mi
+          cpu: 500m
+        requests:
+          memory: 256Mi
+          cpu: 100m
+      
+      persistence:
+        enabled: true
+        size: 5Gi
+        storageClassName: local-path
+    
+    promtail:
+      enabled: false
+    grafana:
+      enabled: false
+    prometheus:
+      enabled: false
