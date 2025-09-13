@@ -1,0 +1,23 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: loki
+  namespace: logging
+spec:
+  releaseName: loki
+  interval: 10m
+  chart:
+    spec:
+      chart: loki
+      version: 6.40.0   # example chart version; change if you prefer
+      sourceRef:
+        kind: HelmRepository
+        name: grafana-loki
+        namespace: flux-system
+  install:
+    createNamespace: true
+  values:
+    persistence:
+      enabled: false    # for production set to true and configure storageClass + size
+    service:
+      type: ClusterIP
