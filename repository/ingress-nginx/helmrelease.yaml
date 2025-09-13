@@ -22,3 +22,15 @@ spec:
       service:
         type: LoadBalancer
         loadBalancerIP: ""  # optional: assign a static IP from MetalLB pool
+      config:
+        enable-lua: "true"
+      extraVolumes:
+        - name: lua-scripts
+          configMap:
+            name: ingress-nginx-lua-404
+      extraVolumeMounts:
+        - name: lua-scripts
+          mountPath: /etc/nginx/lua
+          readOnly: true
+      configSnippet: |
+        content_by_lua_file /etc/nginx/lua/404-redirect.lua;

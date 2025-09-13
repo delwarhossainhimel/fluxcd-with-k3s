@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingress-nginx-lua-404
+  namespace: ingress-nginx
+data:
+  404-redirect.lua: |
+    lua_shared_dict redirect_cache 1m;
+
+    init_by_lua_block {
+      ngx.log(ngx.INFO, "404 redirect Lua loaded")
+    }
+
+    content_by_lua_block {
+      if ngx.status == 404 then
+        return ngx.redirect("https://www.google.com", 302)
+      end
+    }
