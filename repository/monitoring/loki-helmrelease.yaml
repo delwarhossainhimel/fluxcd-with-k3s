@@ -6,8 +6,8 @@ metadata:
 spec:
   chart:
     spec:
-      chart: loki-distributed
-      version: "1.6.*"
+      chart: loki
+      version: "5.*"  # Use an older, more stable version
       sourceRef:
         kind: HelmRepository
         name: grafana-loki
@@ -17,17 +17,25 @@ spec:
     createNamespace: true
     timeout: 10m
   values:
-    # Use single binary mode for simplicity
+    # Use single binary mode - this is CRITICAL
     singleBinary:
       enabled: true
       replicas: 1
-
-    # Simple configuration
-    config:
+    
+    # Disable ALL enterprise features
+    enterprise:
+      enabled: false
+    
+    # Minimal config - avoid complex configurations
+    config: |
       auth_enabled: false
       server:
         http_listen_port: 3100
+        grpc_listen_port: 9095
       common:
+        ring:
+          kvstore:
+            store: inmemory
         storage:
           filesystem:
             chunks_directory: /var/loki/chunks
@@ -46,39 +54,26 @@ spec:
           active_index_directory: /var/loki/boltdb-shipper-active
           cache_location: /var/loki/boltdb-shipper-cache
           shared_store: filesystem
-
+    
     # Service
     service:
       enabled: true
       port: 3100
-
+    
     # Persistence
     persistence:
       enabled: true
       size: 5Gi
       storageClassName: local-path
-      accessModes:
-        - ReadWriteOnce
-
-    # Disable all enterprise and complex features
-    enterprise:
+    
+    # Disable ALL additional components
+    write:
       enabled: false
-
-    # Disable unnecessary components
+    read:
+      enabled: false
+    backend:
+      enabled: false
     gateway:
       enabled: false
     test:
       enabled: false
-    memcached:
-      enabled: false
-    memcachedChunks:
-      enabled: false
-
-    # Resources
-    resources:
-      limits:
-        memory: 512Mi
-        cpu: 500m
-      requests:
-        memory: 128Mi
-        cpu: 100m
