@@ -71,65 +71,68 @@
 #       enabled: false
 #     prometheus:
 #       enabled: false
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bitnami
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://charts.bitnami.com/bitnami
+---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: loki
   namespace: monitoring
 spec:
+  interval: 10m  # Required: Reconciliation interval (e.g., 10m, 1h)
+
   chart:
     spec:
-      chart: loki  # Note: Bitnami chart is actually 'grafana-loki', but 'loki' resolves correctly
+      chart: loki
       version: "11.2.*"
       sourceRef:
         kind: HelmRepository
         name: bitnami
         namespace: flux-system
-  values:
-    auth_enabled: false  # Your existing setting (disables multi-tenancy)
 
-    # Your persistence setup (applies to ingester/boltdb-shipper components)
+  values:
+    auth_enabled: false
+
+    # Persistence for ingester (filesystem storage)
     persistence:
       enabled: true
       size: 5Gi
       storageClassName: local-path
 
-    # Critical: Override Loki's common config for filesystem storage
+    # Override for filesystem storage (fixes nil pointer on chunks)
     loki:
       commonConfig:
-        path_prefix: /data/loki  # Base path on the PVC for all storage
+        path_prefix: /data/loki
         storage:
-          filesystem:  # Use local filesystem (matches your persistence)
-            chunks_directory: /data/loki/chunks  # Path for log chunks (fixes the nil pointer)
-            rules_directory: /data/loki/rules     # Path for ruler rules
-        replication_factor: 1  # Single replica for simple setup
+          filesystem:
+            chunks_directory: /data/loki/chunks
+            rules_directory: /data/loki/rules
+        replication_factor: 1
 
-      # Basic schema config (required for boltdb-shipper; adjust 'from' date if needed)
+      # Basic schema config
       schemaConfig:
         configs:
-          - from: 2024-05-01  # Use a recent date; older logs need back-compat
+          - from: 2024-05-01
             store: boltdb-shipper
             object_store: filesystem
-            schema: v13  # Or v12 for compatibility
+            schema: v13
             index:
               prefix: index_
               period: 24h
 
-      # Optional: Disable ruler/compactor if not needed (reduces complexity)
+      # Disable unused components
       ruler:
         enabled: false
       compactor:
         enabled: false
 
-      # Ensure ingester uses persistence (default, but explicit for clarity)
       ingester:
         persistence:
-          enabled: true  # Ties to your global persistence
-
-    # Optional: Enable embedded MinIO for full object storage (dev/test only; replaces filesystem)
-    # minio:
-    #   enabled: true
-    #   auth:
-    #     rootUser: minioadmin
-    #   defaultBuckets: "loki-chunks:loki-rules:loki-admin"  # Auto-creates buckets
-    # Then update commonConfig.storage to: type: s3, s3: { endpoint: minio:9000, insecure: true, bucketNames: { chunks: loki-chunks, ruler: loki-rules, admin: loki-admin } }
+          enabled: true
