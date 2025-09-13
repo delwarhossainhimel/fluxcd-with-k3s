@@ -10,5 +10,5 @@ resources:
   - promtail-helmrelease.yaml
   - grafana-helmrelease.yaml
   - grafana-datasource-configmap.yaml
-  - grafana-dashboard-configmap.yaml  
   - ingress-grafana.yaml
+  - grafana-dashboard-configmap.yaml
