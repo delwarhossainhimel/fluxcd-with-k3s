@@ -6,8 +6,8 @@ metadata:
 spec:
   chart:
     spec:
-      chart: loki
-      version: "6.6.*"
+      chart: loki-distributed
+      version: "1.6.*"
       sourceRef:
         kind: HelmRepository
         name: grafana-loki
@@ -15,43 +15,70 @@ spec:
   interval: 5m
   install:
     createNamespace: true
+    timeout: 10m
   values:
-    # Minimal working configuration
-    mode: single
+    # Use single binary mode for simplicity
     singleBinary:
       enabled: true
-    
-    # Disable all enterprise and complex features
-    enterprise:
-      enabled: false
-    
-    # Simple config
+      replicas: 1
+
+    # Simple configuration
     config:
       auth_enabled: false
-      ingester:
-        lifecycler:
-          ring:
-            kvstore:
-              store: inmemory
+      server:
+        http_listen_port: 3100
+      common:
+        storage:
+          filesystem:
+            chunks_directory: /var/loki/chunks
+            rules_directory: /var/loki/rules
       schema_config:
         configs:
           - from: 2020-10-24
             store: boltdb-shipper
             object_store: filesystem
             schema: v11
-      server:
-        http_listen_port: 3100
+            index:
+              prefix: index_
+              period: 24h
       storage_config:
-        filesystem:
-          directory: /var/loki/chunks
-    
+        boltdb_shipper:
+          active_index_directory: /var/loki/boltdb-shipper-active
+          cache_location: /var/loki/boltdb-shipper-cache
+          shared_store: filesystem
+
     # Service
     service:
       enabled: true
       port: 3100
-    
+
     # Persistence
     persistence:
       enabled: true
       size: 5Gi
       storageClassName: local-path
+      accessModes:
+        - ReadWriteOnce
+
+    # Disable all enterprise and complex features
+    enterprise:
+      enabled: false
+
+    # Disable unnecessary components
+    gateway:
+      enabled: false
+    test:
+      enabled: false
+    memcached:
+      enabled: false
+    memcachedChunks:
+      enabled: false
+
+    # Resources
+    resources:
+      limits:
+        memory: 512Mi
+        cpu: 500m
+      requests:
+        memory: 128Mi
+        cpu: 100m
