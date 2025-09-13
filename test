@@ -1,1 +1,18 @@
-sdfsdfgdsf
+export GITHUB_TOKEN=<your-token>
+export GITHUB_USER=<your-username>
+
+flux bootstrap github \
+  --owner=$GITHUB_USER \
+  --repository=my-repo \
+  --branch=main \
+  --path=clusters/my-cluster \
+  --personal
+my-repo/
+├── clusters/
+│   └── my-cluster/
+│       ├── deployment.yaml
+│       ├── service.yaml
+
+sudo apt-get install -y sops  # Debian/Ubuntu
+sudo apt-get install -y age
+age-keygen -o age.agekey
