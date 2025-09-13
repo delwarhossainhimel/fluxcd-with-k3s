@@ -1,32 +1,35 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dummy-backend
+  namespace: ingress-nginx
+spec:
+  selector:
+    app: dummy-backend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dummy-deployment
+  name: dummy-backend
   namespace: ingress-nginx
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dummy
+      app: dummy-backend
   template:
     metadata:
       labels:
-        app: dummy
+        app: dummy-backend
     spec:
       containers:
-        - name: dummy
-          image: nginx:alpine
+        - name: dummy-backend
+          image: hashicorp/http-echo
+          args:
+            - "-text=OK"
           ports:
-            - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: dummy-service
-  namespace: ingress-nginx
-spec:
-  selector:
-    app: dummy
-  ports:
-    - port: 80
-      targetPort: 80
+            - containerPort: 8080
