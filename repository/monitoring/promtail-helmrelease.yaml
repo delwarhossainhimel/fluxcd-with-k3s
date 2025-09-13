@@ -56,7 +56,7 @@ spec:
                 - localhost
               labels:
                 job: kubernetes-pods
-                __path__: /var/log/pods/*/*/*.log
+                __path__: /var/log/pods/*/*/*.log.json
     extraVolumes:
       - name: varlog
         hostPath:
