@@ -16,3 +16,14 @@ my-repo/
 sudo apt-get install -y sops  # Debian/Ubuntu
 sudo apt-get install -y age
 age-keygen -o age.agekey
+
+cat > ~/.sops.yaml << EOF
+creation_rules:
+  - path_regex: .*.yaml$
+    age: >-
+      age1gqv7ce8639r8zu9hv699e5s46f2hqqcu3p7ll4px8f7lkwlsly7qpuchx7
+EOF
+
+# Replace with your actual public key
+PUBLIC_KEY=$(cat ~/.sops/age-key.txt | grep "public key:" | cut -d ' ' -f 4)
+sed -i "age1gqv7ce8639r8zu9hv699e5s46f2hqqcu3p7ll4px8f7lkwlsly7qpuchx7" ~/.sops.yaml

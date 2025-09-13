@@ -1,0 +1,10 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: metallb
+  namespace: metallb-system
+spec:
+  interval: 1m0s
+  ref:
+    branch: main
+  url: https://github.com/delwarhossainhimel/fluxcd-with-k3s
